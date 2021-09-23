@@ -1,0 +1,4 @@
+name=webdav-client
+description = webdav客户端
+version=1.00
+url=https://github.com/Garefield/stellar-WebDAVClient
