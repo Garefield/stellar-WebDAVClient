@@ -126,6 +126,7 @@ class webdevclientplugin(StellarPlayer.IStellarPlayerPlugin):
             json.dump(jsondata,f,sort_keys=True, indent=4, separators=(',', ':'))
             
     def onLoadDir(self):
+        self.loading()
         self.dirlist_val = []
         self.filelist_val = []
         files = self.webdav.ls(self.maindir)
@@ -152,6 +153,7 @@ class webdevclientplugin(StellarPlayer.IStellarPlayerPlugin):
                 self.filelist_val.append({'filename':filename,'path':file.name})
         self.player.updateControlValue('main','dirlist',self.dirlist_val)
         self.player.updateControlValue('main','filelist',self.filelist_val)
+        self.loading(True)
     
     def on_dirlist_item_dblclick(self, page, control, item):
         if self.webdav:
@@ -172,7 +174,10 @@ class webdevclientplugin(StellarPlayer.IStellarPlayerPlugin):
         playurl = playurl + self.server_username + ':' + self.server_pwd + '@' + self.server_ip + ':' + str(self.server_port) + playpath
         print(playurl)
         self.player.play(playurl)
-        
+
+    def loading(self, stopLoading = False):
+        if hasattr(self.player,'loadingAnimation'):
+            self.player.loadingAnimation('main', stop=stopLoading)
         
 def newPlugin(player:StellarPlayer.IStellarPlayer,*arg):
     plugin = webdevclientplugin(player)
