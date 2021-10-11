@@ -131,7 +131,9 @@ class webdevclientplugin(StellarPlayer.IStellarPlayerPlugin):
         self.filelist_val = []
         files = self.webdav.ls(self.maindir)
         for file in files:
-            if file.contenttype.find('directory') >= 0:
+            checkfiles = self.webdav.ls(file.name)
+            if len(checkfiles) > 1:
+            #if file.contenttype.find('directory') >= 0:
                 if file.name == self.maindir:
                     if self.maindir != '/':
                         pos = file.name.rfind("/")
