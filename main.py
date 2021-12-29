@@ -24,7 +24,7 @@ class webdevclientplugin(StellarPlayer.IStellarPlayerPlugin):
     
     def start(self):
         super().start()
-        self.configjson = self.player.dataDirectory + '\\config.json'
+        self.configjson = self.player.dataDirectory + os.path.sep + 'config.json'
         if os.path.isfile(self.configjson):
             file = open(self.configjson, "rb")
             fileJson = json.loads(file.read())
