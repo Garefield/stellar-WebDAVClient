@@ -20,7 +20,7 @@ class webdevclientplugin(StellarPlayer.IStellarPlayerPlugin):
         
     def show(self):
         controls = self.makeLayout()
-        self.doModal('main',800,700,'',controls)
+        self.doModal('main',1200,800,'',controls)
     
     def start(self):
         super().start()
@@ -41,14 +41,8 @@ class webdevclientplugin(StellarPlayer.IStellarPlayerPlugin):
                     self.is_ssl = fileJson['ssl']
     
     def makeLayout(self):
-        dirlist_layout = {'group':[
-                    {'type':'label','name':'dirname'}
-                ]
-            }
-        filelist_layout = {'group':[
-                    {'type':'label','name':'filename'}
-                ]
-            }
+        dirlist_layout ={'type':'link','name':'dirname', '@click': 'on_dirlist_item_dblclick'}
+        filelist_layout ={'type':'link','name':'filename', '@click': 'on_filelist_item_dblclick'}
         controls = [
             {'group':
                 [
@@ -69,10 +63,10 @@ class webdevclientplugin(StellarPlayer.IStellarPlayerPlugin):
                     {'group':
                         [
                             {'type':'edit','name':'pwd_edit','value':self.server_pwd, 'label':'密      码','width':300},
-                            {'type':'space','width':50},
+                            {'type':'space','width':5},
                             {'type':'button','name':'连接','width':60,'@click':'onConnect'},
-                            {'type':'space','width':50},
-                            {'type':'button','name':'保存','width':60,'@click':'onSave'},
+                            {'type':'space','width':5},
+                            {'type':'button','name':'保存设置','width':60,'@click':'onSave'},
                         ],
                         'height':25
                     }
@@ -84,9 +78,9 @@ class webdevclientplugin(StellarPlayer.IStellarPlayerPlugin):
             {'group':
                 [
                     {'type':'space','width':5},
-                    {'type':'list','name':'dirlist','itemheight':30,'itemlayout':dirlist_layout,':value':'dirlist_val','width':0.3, '@dblclick': 'on_dirlist_item_dblclick', 'marginSize':20, 'separator': True},
+                    {'type':'list','name':'dirlist','itemheight':30,'itemlayout':dirlist_layout,':value':'dirlist_val','width':0.25,'separator': True},
                     {'type':'space','width':5},
-                    {'type':'list','name':'filelist','itemheight':30,'itemlayout':filelist_layout,':value':'filelist_val','width':0.7, '@dblclick': 'on_filelist_item_dblclick', 'marginSize':20, 'separator': True},
+                    {'type':'list','name':'filelist','itemheight':30,'itemlayout':filelist_layout,':value':'filelist_val','width':0.75,'separator': True},
                 ]
             }
         ]
@@ -130,6 +124,7 @@ class webdevclientplugin(StellarPlayer.IStellarPlayerPlugin):
         self.dirlist_val = []
         self.filelist_val = []
         files = self.webdav.ls(self.maindir)
+        files.sort()
         for file in files:
             checkfiles = self.webdav.ls(file.name)
             if len(checkfiles) > 1:
@@ -153,11 +148,13 @@ class webdevclientplugin(StellarPlayer.IStellarPlayerPlugin):
                 filename = file.name.lstrip(self.maindir)
                 filename = urllib.parse.unquote(filename)
                 self.filelist_val.append({'filename':filename,'path':file.name})
+        #self.dirlist_val.sort()
+        #self.filelist_val.sort()
         self.player.updateControlValue('main','dirlist',self.dirlist_val)
         self.player.updateControlValue('main','filelist',self.filelist_val)
         self.loading(True)
     
-    def on_dirlist_item_dblclick(self, page, control, item):
+    def on_dirlist_item_dblclick(self, page, control, item, *arg):
         if self.webdav:
             dirpath = self.dirlist_val[item]['path']
             self.maindir = dirpath
@@ -167,7 +164,7 @@ class webdevclientplugin(StellarPlayer.IStellarPlayerPlugin):
         else:
             self.player.toast('main','连接无效')
             
-    def on_filelist_item_dblclick(self, page, control, item):
+    def on_filelist_item_dblclick(self, page, control, item, *arg):
         playpath =  self.filelist_val[item]['path']
         if self.is_ssl:
             playurl = 'https://' 
