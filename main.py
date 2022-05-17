@@ -41,8 +41,8 @@ class webdevclientplugin(StellarPlayer.IStellarPlayerPlugin):
                     self.is_ssl = fileJson['ssl']
     
     def makeLayout(self):
-        dirlist_layout ={'type':'link','name':'dirname', '@click': 'on_dirlist_item_dblclick'}
-        filelist_layout ={'type':'link','name':'filename', '@click': 'on_filelist_item_dblclick'}
+        dirlist_layout ={'type':'link','name':'dirname', '@click': 'on_dirlist_item_dblclick','fontSize':15}
+        filelist_layout ={'type':'link','name':'filename', '@click': 'on_filelist_item_dblclick','fontSize':15}
         controls = [
             {'group':
                 [
@@ -80,7 +80,7 @@ class webdevclientplugin(StellarPlayer.IStellarPlayerPlugin):
                     {'type':'space','width':5},
                     {'type':'list','name':'dirlist','itemheight':30,'itemlayout':dirlist_layout,':value':'dirlist_val','width':0.25,'separator': True},
                     {'type':'space','width':5},
-                    {'type':'list','name':'filelist','itemheight':30,'itemlayout':filelist_layout,':value':'filelist_val','width':0.75,'separator': True},
+                    {'type':'list','name':'filelist','itemheight':30,'itemlayout':filelist_layout,':value':'filelist_val','width':0.74,'separator': True},
                 ]
             }
         ]
@@ -119,6 +119,17 @@ class webdevclientplugin(StellarPlayer.IStellarPlayerPlugin):
         with open(self.configjson,"w") as f:
             json.dump(jsondata,f,sort_keys=True, indent=4, separators=(',', ':'))
             
+    def isdir(self, item: easywebdav.File):
+        if item.contenttype == 'httpd/unix-directory':
+            return True
+        if item.size == 0:
+            if not item.contenttype:
+                return True
+            checkfiles = self.webdav.ls(item.name)
+            if len(checkfiles) <= 1:
+                return True
+        return False
+            
     def onLoadDir(self):
         self.loading()
         self.dirlist_val = []
@@ -126,9 +137,7 @@ class webdevclientplugin(StellarPlayer.IStellarPlayerPlugin):
         files = self.webdav.ls(self.maindir)
         files.sort()
         for file in files:
-            checkfiles = self.webdav.ls(file.name)
-            if len(checkfiles) > 1:
-            #if file.contenttype.find('directory') >= 0:
+            if self.isdir(file):
                 if file.name == self.maindir:
                     if self.maindir != '/':
                         pos = file.name.rfind("/")
@@ -137,9 +146,9 @@ class webdevclientplugin(StellarPlayer.IStellarPlayerPlugin):
                         path = path[:pos]
                         if path == '':
                             path = '/'
-                        self.dirlist_val.append({'dirname':'..','path':path})
+                        self.dirlist_val.append({'dirname':' ..','path':path})
                     else:
-                        self.dirlist_val.append({'dirname':'..','path':'/'})
+                        self.dirlist_val.append({'dirname':' ..','path':'/'})
                 else:
                     dirname = file.name.lstrip(self.maindir)
                     dirname = urllib.parse.unquote(dirname)
@@ -148,8 +157,6 @@ class webdevclientplugin(StellarPlayer.IStellarPlayerPlugin):
                 filename = file.name.lstrip(self.maindir)
                 filename = urllib.parse.unquote(filename)
                 self.filelist_val.append({'filename':filename,'path':file.name})
-        #self.dirlist_val.sort()
-        #self.filelist_val.sort()
         self.player.updateControlValue('main','dirlist',self.dirlist_val)
         self.player.updateControlValue('main','filelist',self.filelist_val)
         self.loading(True)
